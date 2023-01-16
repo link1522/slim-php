@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace App;
 
-use ProxyManager\ProxyGenerator\ValueHolder\MethodGenerator\Constructor;
+/**
+ * @property-read ?array $db
+ * @property-read ?string $environment
+ */
 
 class Config {
   protected array $config = [];
@@ -17,7 +20,8 @@ class Config {
         'password' => $env['DB_PASS'],
         'dbname'   => $env['DB_DATABASE'],
         'driver'   => $env['DB_DRIVER'] ?? 'pdo_mysql',
-      ]
+      ],
+      'environment' => $env['APP_ENVIRONMENT'] ?? 'production'
     ];
   }
 
