@@ -1,0 +1,32 @@
+#!/usr/bin/env php
+<?php
+
+use Doctrine\Migrations\Configuration\EntityManager\ExistingEntityManager;
+use Doctrine\Migrations\Configuration\Migration\PhpFile;
+use Doctrine\Migrations\DependencyFactory;
+use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\Tools\Console\ConsoleRunner;
+use Doctrine\ORM\Tools\Console\EntityManagerProvider\SingleManagerProvider;
+use Symfony\Component\Console\Application;
+
+$app = require __DIR__ . '/bootstrap.php';
+$container = $app->getContainer();
+
+$entityManager = $container->get(EntityManager::class);
+
+$config = new PhpFile(CONFIG_PATH . '/migrations.php');
+$dependencyFactory = DependencyFactory::fromEntityManager($config, new ExistingEntityManager($entityManager));
+
+$migrationCommands = require CONFIG_PATH . '/migration_commands.php';
+$customCommands = require CONFIG_PATH . '/commands.php';
+
+$application = new Application('myapp command', 'v1.0');
+
+// add doctrine DBAL / ORM command by doctrine ConsoleRunner
+ConsoleRunner::addCommands($application, new SingleManagerProvider($entityManager));
+// add doctrine Migration command
+$application->addCommands($migrationCommands($dependencyFactory));
+// add custom command
+$application->addCommands(array_map(fn ($command) => $container->get($command), $customCommands));
+
+$application->run();
